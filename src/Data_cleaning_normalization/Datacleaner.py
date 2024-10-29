@@ -1,10 +1,6 @@
 import pandas as pd
 import numpy as np
 
-
-
-
-
 def remove_duplicates(df):
     """Xóa các bản ghi trùng lặp dựa trên cột Country/Region, giữ lại bảng ghi đầu tiên"""
     df.drop_duplicates(subset = "Country/Region",inplace=True)
@@ -25,17 +21,11 @@ def process_missing_values(df, columns_number_of_cases):
     df.dropna(subset = ["Country/Region", "WHO Region"], inplace = True)
     return df
 
-
-    
-
-
 def replace_negative_with_zero(df, columns):
     """Thay thế các giá trị âm trong các cột chỉ định bằng 0"""    
     for column in columns:
         df[column] = df[column].apply(lambda x:x if x >= 0 else 0 )
     return df
-
-
 
 def remove_non_numeric(df, columns):
     """Loại bỏ các ký tự không phải số trong các cột số ca, giữ lại phần số nếu có"""
@@ -76,8 +66,6 @@ def remove_numbers_and_special_characters(df, columns):
 
     return df
 
-
-
 #Các cột số ca 
 columns_number_of_cases = [
     'Confirmed', 'Deaths', 'Recovered', 'Active', 
@@ -98,5 +86,3 @@ def CleanUp():
 
     #Lưu bản làm sạch lại
     dataframe.to_csv(file_path, index=False)
-
-

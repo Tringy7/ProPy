@@ -1,12 +1,9 @@
 import pandas as pd
 
-
 def standardize_country_region(df):
     """Chuẩn hóa cột Country/Region để loại bỏ khoảng trắng thừa và viết hoa chữ cái đầu."""
     df['Country/Region'] = df['Country/Region'].str.strip().str.title()
     return df
-
-
 
 def standardize_WHO_region(df, valid_WHO_Regions):
     """Chuẩn hóa cột Country/Region để loại bỏ khoảng trắng thừa và viết hoa chữ cái đầu
@@ -23,13 +20,8 @@ def round_columns(df, columns):
     df[columns] = df[columns].round(2)
     return df
 
-#Các cột tỉ lệ
 ratio_columns = ["Deaths / 100 Cases", "Recovered / 100 Cases", "Deaths / 100 Recovered", "1 week % increase"]
-
-
-#Các WHO Region hợp lệ 
 valid_WHO_Regions = ["Africa", "Americas", "Eastern Mediterranean", "Europe", "South-East Asia", "Western Pacific"]
-
 
 def normalize():
     file_path = "Data/corona-virus-report/country_wise_latest.csv" 
