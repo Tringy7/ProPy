@@ -1,73 +1,78 @@
 import pandas as pd
-from tkinter import messagebox
+from tkinter import Tk, Label, Entry, Button, messagebox
 
-def update_record(country_to_update):
+def update_record():
+    # Tạo cửa sổ nhập dữ liệu
+    window = Tk()
+    window.title("Cập nhật dữ liệu quốc gia")
+    window.geometry("400x600")
+
     # Đọc dữ liệu từ file CSV
     try:
-        df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")  # Đọc file CSV
-
-        print("Các cột hiện tại trong DataFrame:", df.columns.tolist())
-        
-        # Kiểm tra xem quốc gia có tồn tại trong DataFrame không
-        if country_to_update in df['Country/Region'].values:
-            # Lấy chỉ số của quốc gia cần cập nhật
-            index = df[df['Country/Region'] == country_to_update].index[0]
-
-            # Thay đổi các giá trị mới
-            change_confirmed = input("Thay đổi số ca Confirmed (hoặc nhấn Enter để giữ nguyên): ")
-            change_deaths = input("Thay đổi số ca Deaths (hoặc nhấn Enter để giữ nguyên): ")
-            change_recovered = input("Thay đổi số ca Recovered (hoặc nhấn Enter để giữ nguyên): ")
-            change_active = input("Thay đổi số ca Active (hoặc nhấn Enter để giữ nguyên): ")
-            change_cases = input("Thay đổi số Cases (hoặc nhấn Enter để giữ nguyên): ")
-            change_new_deaths = input("Thay đổi số ca New Deaths (hoặc nhấn Enter để giữ nguyên): ")
-            change_new_recovered = input("Thay đổi số ca New Recovered (hoặc nhấn Enter để giữ nguyên): ")
-            change_confirmed_lw = input("Thay đổi số ca Confirmed last week (hoặc nhấn Enter để giữ nguyên): ")
-            change_WHO_region = input("Thay đổi WHO Region (hoặc nhấn Enter để giữ nguyên): ")
-
-            # Cập nhật các giá trị mới, nếu có
-            if change_confirmed: 
-                df.at[index, 'Confirmed'] = int(change_confirmed)
-            if change_deaths:
-                df.at[index, 'Deaths'] = int(change_deaths)
-            if change_recovered:
-                df.at[index, 'Recovered'] = int(change_recovered)
-            if change_confirmed_lw:
-                df.at[index, 'Confirmed last week'] = int(change_confirmed_lw)
-            if change_active:
-                df.at[index, 'Active'] = int(change_active)
-            if change_cases:
-                df.at[index, 'Cases'] = int(change_cases)
-            if change_new_deaths:
-                df.at[index, 'New Deaths'] = int(change_new_deaths)
-            if change_new_recovered:
-                df.at[index, 'New Recovered'] = int(change_new_recovered)
-            if change_WHO_region:
-                df.at[index, 'WHO Region'] = change_WHO_region
-
-            # Tính toán lại các giá trị dựa trên các công thức được yêu cầu
-            confirmed = df.at[index, 'Confirmed']
-            deaths = df.at[index, 'Deaths']
-            recovered = df.at[index, 'Recovered']
-            confirmed_last_week = df.at[index, 'Confirmed last week']
-
-            # Chỉ tính toán nếu các giá trị đã tồn tại và hợp lệ
-            if confirmed and confirmed > 0:
-                df.at[index, 'Deaths / 100 Cases'] = round((deaths / confirmed) * 100, 2) if deaths else 0
-                df.at[index, 'Recovered / 100 Cases'] = round((recovered / confirmed) * 100, 2) if recovered else 0
-            if recovered and recovered > 0:
-                df.at[index, 'Deaths / 100 Recovered'] = round((deaths / recovered) * 100, 2) if deaths else 0
-            if confirmed_last_week and confirmed_last_week > 0:
-                df.at[index, '1 week change'] = round(confirmed - confirmed_last_week, 2)
-                df.at[index, '1 week % increase'] = round(((confirmed - confirmed_last_week) / confirmed_last_week) * 100, 2)
-
-            # Lưu DataFrame đã cập nhật vào file CSV
-            df.to_csv("Data/corona-virus-report/country_wise_latest.csv", index=False)  # Ghi đè vào file CSV
-            messagebox.showinfo("Thành công", f"Dữ liệu của quốc gia '{country_to_update}' đã được cập nhật thành công!")
-            return df  # Trả về DataFrame đã được cập nhật
-        else:
-            messagebox.showerror("Lỗi", f"Quốc gia '{country_to_update}' không tồn tại trong DataFrame.")
-            return None  # Trả về None nếu không tìm thấy
-
+        df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")
     except FileNotFoundError:
         messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
-        return None  # Trả về None nếu không tìm thấy file
+        window.destroy()
+        return
+
+    # Tạo trường nhập liệu cho tên quốc gia cần cập nhật
+    Label(window, text="Quốc gia:", font=("Arial", 12)).pack(pady=5)
+    country_entry = Entry(window)
+    country_entry.pack()
+
+    # Các trường thông tin cần cập nhật
+    fields = ['Confirmed', 'Deaths', 'Recovered', 'Active', 'Cases', 
+              'New Deaths', 'New Recovered', 'Confirmed last week', 'WHO Region']
+    entries = {}
+
+    # Tạo các ô nhập liệu cho từng trường thông tin
+    for field in fields:
+        Label(window, text=f"{field}:", font=("Arial", 10)).pack(pady=5)
+        entry = Entry(window)
+        entry.pack()
+        entries[field] = entry
+
+    # Hàm xử lý khi nhấn nút "Cập nhật"
+    def save_changes():
+        country_to_update = country_entry.get()
+        if country_to_update not in df['Country/Region'].values:
+            messagebox.showerror("Lỗi", f"Quốc gia '{country_to_update}' không tồn tại trong dữ liệu.")
+            return
+        
+        # Lấy chỉ số của quốc gia cần cập nhật
+        index = df[df['Country/Region'] == country_to_update].index[0]
+
+        # Cập nhật các giá trị mới từ các ô nhập liệu
+        for field in fields:
+            new_value = entries[field].get()
+            if new_value:
+                if field in ['Confirmed', 'Deaths', 'Recovered', 'Active', 'Cases', 
+                             'New Deaths', 'New Recovered', 'Confirmed last week']:
+                    df.at[index, field] = int(new_value)
+                else:
+                    df.at[index, field] = new_value
+
+        # Tính toán lại các giá trị dựa trên các công thức
+        confirmed = df.at[index, 'Confirmed']
+        deaths = df.at[index, 'Deaths']
+        recovered = df.at[index, 'Recovered']
+        confirmed_last_week = df.at[index, 'Confirmed last week']
+
+        # Các công thức tính toán lại giá trị
+        if confirmed and confirmed > 0:
+            df.at[index, 'Deaths / 100 Cases'] = round((deaths / confirmed) * 100, 2) if deaths else 0
+            df.at[index, 'Recovered / 100 Cases'] = round((recovered / confirmed) * 100, 2) if recovered else 0
+        if recovered and recovered > 0:
+            df.at[index, 'Deaths / 100 Recovered'] = round((deaths / recovered) * 100, 2) if deaths else 0
+        if confirmed_last_week and confirmed_last_week > 0:
+            df.at[index, '1 week change'] = round(confirmed - confirmed_last_week, 2)
+            df.at[index, '1 week % increase'] = round(((confirmed - confirmed_last_week) / confirmed_last_week) * 100, 2)
+
+        # Lưu DataFrame đã cập nhật vào file CSV
+        df.to_csv("Data/corona-virus-report/country_wise_latest.csv", index=False)
+        messagebox.showinfo("Thành công", f"Dữ liệu của quốc gia '{country_to_update}' đã được cập nhật thành công!")
+        window.destroy()
+
+    # Nút cập nhật
+    Button(window, text="Cập nhật", command=save_changes, font=("Arial", 12)).pack(pady=20)
+    window.mainloop()

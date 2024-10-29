@@ -30,8 +30,7 @@ data_frame.pack(expand=True, fill="both", padx=10, pady=10)
 # ------------------------------------ View ---------------------------------------------
 # Hàm để đọc file CSV và hiển thị trong Treeview
 def read_and_display_data():
-    try:
-        # Đọc dữ liệu từ CSV
+            # Đọc dữ liệu từ CSV
         df = Read.read()
         
         # Xóa bảng cũ nếu có
@@ -64,9 +63,7 @@ def read_and_display_data():
         data_frame.grid_rowconfigure(0, weight=1)
         data_frame.grid_columnconfigure(0, weight=1)
         
-    except Exception as e:
-        messagebox.showerror("Lỗi", f"Không thể đọc file: {e}")
-
+   
 
 
 
