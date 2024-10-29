@@ -1,7 +1,7 @@
 import pandas as pd
 from tkinter import Tk, Label, Entry, Button, messagebox
-import Read
-def update_record():
+
+def update_record(country_name):
     # Tạo cửa sổ nhập dữ liệu
     window = Tk()
     window.title("Cập nhật dữ liệu quốc gia")
@@ -9,16 +9,20 @@ def update_record():
 
     # Đọc dữ liệu từ file CSV
     try:
-        df = Read.read()
+        df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")
     except FileNotFoundError:
         messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
         window.destroy()
         return
 
-    # Tạo trường nhập liệu cho tên quốc gia cần cập nhật
-    Label(window, text="Quốc gia:", font=("Arial", 12)).pack(pady=5)
-    country_entry = Entry(window)
-    country_entry.pack()
+    # Kiểm tra xem quốc gia có tồn tại trong dữ liệu hay không
+    if country_name not in df['Country/Region'].values:
+        messagebox.showerror("Lỗi", f"Quốc gia '{country_name}' không tồn tại trong dữ liệu.")
+        window.destroy()
+        return
+
+    # Lấy chỉ số của quốc gia cần cập nhật
+    index = df[df['Country/Region'] == country_name].index[0]
 
     # Các trường thông tin cần cập nhật
     fields = ['Confirmed', 'Deaths', 'Recovered', 'Active', 'Cases', 
@@ -34,14 +38,6 @@ def update_record():
 
     # Hàm xử lý khi nhấn nút "Cập nhật"
     def save_changes():
-        country_to_update = country_entry.get()
-        if country_to_update not in df['Country/Region'].values:
-            messagebox.showerror("Lỗi", f"Quốc gia '{country_to_update}' không tồn tại trong dữ liệu.")
-            return
-        
-        # Lấy chỉ số của quốc gia cần cập nhật
-        index = df[df['Country/Region'] == country_to_update].index[0]
-
         # Cập nhật các giá trị mới từ các ô nhập liệu
         for field in fields:
             new_value = entries[field].get()
@@ -70,7 +66,7 @@ def update_record():
 
         # Lưu DataFrame đã cập nhật vào file CSV
         df.to_csv("Data/corona-virus-report/country_wise_latest.csv", index=False)
-        messagebox.showinfo("Thành công", f"Dữ liệu của quốc gia '{country_to_update}' đã được cập nhật thành công!")
+        messagebox.showinfo("Thành công", f"Dữ liệu của quốc gia '{country_name}' đã được cập nhật thành công!")
         window.destroy()
 
     # Nút cập nhật

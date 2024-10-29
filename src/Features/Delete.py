@@ -1,11 +1,11 @@
 import pandas as pd
 from tkinter import messagebox
-import Read
+
 
 
 def delete(temp_name_delete):
     try:
-        df = Read.read()  # Đọc file CSV
+        df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")  # Đọc file CSV
 
         country_to_delete = temp_name_delete
 
