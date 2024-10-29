@@ -1,9 +1,10 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, Button, Frame 
 from Features import Read
 from Features import Create
 from Features import Delete
 from Features import Update
+from Features import Chart
 
 # Tạo cửa sổ chính
 root = tk.Tk()
@@ -111,7 +112,7 @@ def add_create_interface():
             who_region = inputs['WHO Region'].get()
 
             # Gọi hàm Create với các biến tạm
-            df = Create.create(country, confirmed, deaths, recovered, active, new_cases, new_deaths, new_recovered, confirmed_last_week, who_region)
+            Create.create(country, confirmed, deaths, recovered, active, new_cases, new_deaths, new_recovered, confirmed_last_week, who_region)
 
             # Hiển thị thông báo thành công
             messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
@@ -208,6 +209,35 @@ def update_country(country_to_update):
         messagebox.showerror("Lỗi", f"Đã xảy ra lỗi: {e}")
 
 
+# --------------------------------------- Chart ------------------------------------------------
+
+def add_chart_interface():
+    for widget in data_frame.winfo_children():
+        widget.destroy()
+
+    label = tk.Label(data_frame, text="Select chart type to view:")
+    label.grid(row=0, column=0, padx=(10, 2), pady=1, sticky='w') 
+
+    # Create a frame for buttons
+    button_frame = Frame(data_frame)  # Chỉ sử dụng data_frame để đảm bảo bố trí tốt
+    button_frame.grid(row=0, column=1, pady=10)
+
+
+    # Create buttons to display charts in a horizontal arrangement
+
+    piechart_button = Button(button_frame, text='Pie Chart', command=lambda: Chart.country_selection(), relief=tk.RAISED)
+    piechart_button.pack(side='left', padx=10)
+
+    confirmed_button = Button(button_frame, text='Total Confirmed', command=lambda: Chart.show_plot("Confirmed"), relief=tk.RAISED)
+    confirmed_button.pack(side='left', padx=10)
+
+    deaths_button = Button(button_frame, text='Total Deaths', command=lambda: Chart.show_plot("Deaths"), relief=tk.RAISED)
+    deaths_button.pack(side='left', padx=5)
+
+    recovered_button = Button(button_frame, text='Total Recovered', command=lambda: Chart.show_plot("Recovered"), relief=tk.RAISED)
+    recovered_button.pack(side='left', padx=5)
+
+   
 
 
 
@@ -221,7 +251,7 @@ def quit_app():
 
 # ----------------------------------------- Interface ----------------------------------------------
 # Tạo các nút với nhãn theo yêu cầu
-buttons = ["View", "Create", "Update", "Delete", "Quit", "Desc"]
+buttons = ["View", "Create", "Update", "Delete", "Quit", "Chart"]
 for i, button_text in enumerate(buttons):
     button = tk.Button(button_frame, text=button_text, width=10)
     button.pack(side=tk.LEFT, padx=5)
@@ -235,6 +265,8 @@ for i, button_text in enumerate(buttons):
         button.config(command=add_delete_interface)
     elif button_text == "Update":
         button.config(command=add_update_interface)
+    elif button_text == "Chart":
+        button.config(command=add_chart_interface)
     elif button_text == "Quit":
         button.config(command=quit_app)
 

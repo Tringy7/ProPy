@@ -22,8 +22,9 @@ def create(country, confirmed, deaths, recovered, active, new_cases, new_deaths,
     new_data['1 week % increase'] = round((new_data['1 week change'] / new_data['Confirmed last week']) * 100, 2) if new_data['Confirmed last week'] > 0 else 0
 
     # Đọc dữ liệu từ file CSV trước khi thêm bản ghi mới
+    # df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")
     df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")
-    
+
     # Chuyển đổi new_data thành DataFrame
     new_record_df = pd.DataFrame([new_data])
     

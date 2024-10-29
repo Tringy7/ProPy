@@ -1,6 +1,6 @@
 import pandas as pd
 from tkinter import Tk, Label, Entry, Button, messagebox
-
+import Read
 def update_record():
     # Tạo cửa sổ nhập dữ liệu
     window = Tk()
@@ -9,7 +9,7 @@ def update_record():
 
     # Đọc dữ liệu từ file CSV
     try:
-        df = pd.read_csv("Data/corona-virus-report/country_wise_latest.csv")
+        df = Read.read()
     except FileNotFoundError:
         messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
         window.destroy()
