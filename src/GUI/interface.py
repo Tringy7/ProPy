@@ -32,7 +32,7 @@ def run_interface():
     def read_and_display_data():
             # Làm sạch và chuẩn hóa 
             # Datacleaner.CleanUp()
-            # DataNormalizer.normalize()
+            DataNormalizer.normalize()
 
             df = Read.read()
             
@@ -76,18 +76,28 @@ def run_interface():
 
         inputs = {}
         labels = ['Country/Region', 'Confirmed', 'Deaths', 'Recovered', 'Active', 'New cases', 'New deaths', 'New recovered', 'Confirmed last week', 'WHO Region']
-        entries = [] 
+        entries = []
+
+        df = Read.read()
+        who_region_options = df['WHO Region'].dropna().unique().tolist()
 
         for idx, label_text in enumerate(labels):
             label = tk.Label(data_frame, text=label_text)
-            label.grid(row=idx, column=0, padx=(10, 2), pady=5, sticky='w') 
+            label.grid(row=idx, column=0, padx=(10, 2), pady=5, sticky='w')
 
-            entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
-            entry.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)  
-            inputs[label_text] = entry
-            entries.append(entry)  
+            if label_text == 'WHO Region':
+                selected_region = tk.StringVar()
+                selected_region.set(who_region_options[0])  
+                dropdown = tk.OptionMenu(data_frame, selected_region, *who_region_options)
+                dropdown.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
+                inputs[label_text] = selected_region
+            else:
+                entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
+                entry.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
+                inputs[label_text] = entry
+                entries.append(entry)
 
-            entry.bind("<Return>", lambda event, idx=idx: entries[min(idx + 1, len(entries) - 1)].focus())
+                entry.bind("<Return>", lambda event, idx=idx: entries[min(idx + 1, len(entries) - 1)].focus())
 
         data_frame.grid_columnconfigure(1, weight=1)
 
@@ -109,10 +119,13 @@ def run_interface():
 
                 messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
                 read_and_display_data()
-                
+
                 # Xóa dữ liệu trong các ô nhập liệu sau khi lưu thành công
-                for entry in inputs.values():
-                    entry.delete(0, tk.END)
+                for key, widget in inputs.items():
+                    if isinstance(widget, tk.Entry):
+                        widget.delete(0, tk.END)
+                    elif isinstance(widget, tk.StringVar):
+                        widget.set(who_region_options[0]) 
 
             except ValueError as ve:
                 messagebox.showerror("Lỗi nhập liệu", f"Giá trị không hợp lệ: {ve}")
