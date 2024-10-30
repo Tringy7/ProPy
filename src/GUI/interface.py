@@ -1,12 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk, Button, Frame 
-from Features import Read
-from Features import Create
-from Features import Delete
-from Features import Update
-from Features import Chart
-from Data_cleaning_normalization import Datacleaner
-from Data_cleaning_normalization import DataNormalizer
+from Features import Read, Create, Delete, Chart, Update
+from Data_cleaning_normalization import Datacleaner, DataNormalizer
 
 def run_interface():
     # Tạo cửa sổ chính

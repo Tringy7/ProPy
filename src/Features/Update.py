@@ -1,10 +1,10 @@
-import pandas as pd
-from tkinter import Tk, Label, Entry, Button, messagebox
+import tkinter as tk
+from tkinter import messagebox, ttk
 from Features import Read
 
 def update_record(country_name):
     # Tạo cửa sổ nhập dữ liệu
-    window = Tk()
+    window = tk.Tk()
     window.title("Cập nhật dữ liệu quốc gia")
     window.geometry("400x600")
 
@@ -23,34 +23,44 @@ def update_record(country_name):
 
     index = df[df['Country/Region'] == country_name].index[0]
 
-    # Các trường thông tin cần cập nhật
-    fields = ['Confirmed', 'Deaths', 'Recovered', 'Active', 'Cases', 
-              'New Deaths', 'New Recovered', 'Confirmed last week', 'WHO Region']
+    # Thông tin cần cập nhật
+    fields = ['Confirmed', 'Deaths', 'Recovered', 'Active', 
+              'New cases', 'New deaths', 'New recovered', 
+              'Confirmed last week', 'WHO Region']
     entries = {}
 
     # Tạo các ô nhập liệu cho từng trường thông tin
     for field in fields:
-        Label(window, text=f"{field}:", font=("Arial", 10)).pack(pady=5)
-        entry = Entry(window)
-        entry.pack()
-        entries[field] = entry
+        tk.Label(window, text=f"{field}:", font=("Arial", 10)).pack(pady=5)
+        
+        if field == 'WHO Region':
+            region_options = df['WHO Region'].unique()  
+            combobox = ttk.Combobox(window, values=region_options)
+            combobox.pack()
+            entries[field] = combobox
+        else:
+            entry = tk.Entry(window)
+            entry.pack()
+            entries[field] = entry
 
     # Hàm xử lý khi nhấn nút "Cập nhật"
     def save_changes():
         for field in fields:
             new_value = entries[field].get()
             if new_value:
-                if field in ['Confirmed', 'Deaths', 'Recovered', 'Active', 'Cases', 
-                             'New Deaths', 'New Recovered', 'Confirmed last week']:
+                if field in ['Confirmed', 'Deaths', 'Recovered', 'Active', 
+                             'New cases', 'New deaths', 'New recovered', 
+                             'Confirmed last week']:
                     df.at[index, field] = int(new_value)
                 else:
                     df.at[index, field] = new_value
 
-        # Tính toán
+        # Cập nhật các chỉ số tính toán
         confirmed = df.at[index, 'Confirmed']
         deaths = df.at[index, 'Deaths']
         recovered = df.at[index, 'Recovered']
         confirmed_last_week = df.at[index, 'Confirmed last week']
+
         if confirmed and confirmed > 0:
             df.at[index, 'Deaths / 100 Cases'] = round((deaths / confirmed) * 100, 2) if deaths else 0
             df.at[index, 'Recovered / 100 Cases'] = round((recovered / confirmed) * 100, 2) if recovered else 0
@@ -60,11 +70,11 @@ def update_record(country_name):
             df.at[index, '1 week change'] = round(confirmed - confirmed_last_week, 2)
             df.at[index, '1 week % increase'] = round(((confirmed - confirmed_last_week) / confirmed_last_week) * 100, 2)
 
-        # Lưu 
+        # Lưu
         df.to_csv("Data/corona-virus-report/country_wise_latest.csv", index=False)
         messagebox.showinfo("Thành công", f"Dữ liệu của quốc gia '{country_name}' đã được cập nhật thành công!")
         window.destroy()
 
     # Nút cập nhật
-    Button(window, text="Cập nhật", command=save_changes, font=("Arial", 12)).pack(pady=20)
+    tk.Button(window, text="Cập nhật", command=save_changes, font=("Arial", 12)).pack(pady=20)
     window.mainloop()
