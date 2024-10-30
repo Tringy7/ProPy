@@ -31,7 +31,7 @@ def run_interface():
     # ------------------------------------ View ---------------------------------------------
     def read_and_display_data():
             # Làm sạch và chuẩn hóa 
-            # Datacleaner.CleanUp()
+            Datacleaner.CleanUp()
             DataNormalizer.normalize()
 
             df = Read.read()
