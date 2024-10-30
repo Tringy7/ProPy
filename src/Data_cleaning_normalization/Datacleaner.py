@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 def remove_duplicates(df):
-    """Xóa các bản ghi trùng lặp dựa trên cột Country/Region, giữ lại bảng ghi đầu tiên"""
-    df.drop_duplicates(subset = "Country/Region",inplace=True)
+    """Xóa các bản ghi trùng lặp dựa trên cột Country/Region, giữ lại bảng ghi cuối"""
+    df.drop_duplicates(subset = "Country/Region",keep = 'last',inplace=True)
     return df
     
 def process_missing_values(df, columns_number_of_cases):
