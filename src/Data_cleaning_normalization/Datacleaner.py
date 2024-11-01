@@ -15,10 +15,10 @@ def process_missing_values(df, columns_number_of_cases):
 
     #Thay các giá trị bị thiếu của các cột số ca bằng giá trị 0
     for column in columns_number_of_cases:
-        df[column].fillna(0, inplace = True)
+        df[column] = df[column].fillna(0)
 
     #Xóa các hàng nếu cột Country/Region hoặc cột WHO Region bị thiếu giá trị
-    df.dropna(subset = ["Country/Region", "WHO Region"], inplace = True)
+    df = df.dropna(subset = ["Country/Region", "WHO Region"])
     return df
 
 def replace_negative_with_zero(df, columns):
@@ -80,7 +80,7 @@ def remove_invalid_row(df):
     con2 = (df['New deaths'] <= df['New cases']) & (df['New recovered'] <= df['New cases']) 
     condition_sum2 = (df['New deaths'] + df['New recovered'] <= df['New cases'])
 
-    df = df.loc(con1 & condition_sum1 & con2 & condition_sum2)
+    df = df[(con1 & condition_sum1) & (con2 & condition_sum2)]
     return df
 
 #Các cột số ca 
