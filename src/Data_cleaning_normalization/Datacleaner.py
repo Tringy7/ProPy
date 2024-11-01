@@ -66,6 +66,23 @@ def remove_numbers_and_special_characters(df, columns):
 
     return df
 
+
+def remove_invalid_row(df):
+    """
+    Loại bỏ các hàng có giá trị bất hợp lý:
+    - Nếu cột Deaths, Recovered hoặc Active lớn hơn Confirmed, xóa hàng đó.
+    - Nếu cột New deaths hoặc New recovered lớn hơn New cases, xóa hàng đó.
+    """
+
+    con1 = (df['Deaths'] <= df['Confirmed']) & (df['Recovered'] <= df['Confirmed']) & (df['Active'] <= df['Confirmed'])
+    condition_sum1 = (df['Deaths'] + df['Recovered'] + df['Active'] <= df['Confirmed'])
+
+    con2 = (df['New deaths'] <= df['New cases']) & (df['New recovered'] <= df['New cases']) 
+    condition_sum2 = (df['New deaths'] + df['New recovered'] <= df['New cases'])
+
+    df = df.loc(con1 & condition_sum1 & con2 & condition_sum2)
+    return df
+
 #Các cột số ca 
 columns_number_of_cases = [
     'Confirmed', 'Deaths', 'Recovered', 'Active', 
@@ -78,11 +95,12 @@ columns_number_of_cases = [
 def CleanUp():
     file_path = "Data/corona-virus-report/country_wise_latest.csv" 
     dataframe = pd.read_csv(file_path, header=0) #Lấy hàng đầu tiên làm tiêu đề
-    remove_non_numeric(dataframe,columns_number_of_cases) #Loại bỏ các kí tự không phải số trong các cột số ca
-    remove_numbers_and_special_characters(dataframe, ['Country/Region','WHO Region']) #Loại bỏ các kí tự không phải chữ cái
-    replace_negative_with_zero(dataframe, columns_number_of_cases) #Thay các giá trị ở các cột số ca nếu là giá trị âm sẽ đổi thành 0 
-    remove_duplicates(dataframe) #Xóa các hàng có giá trị trùng lặp dựa trên hàng Country\Region
-    process_missing_values(dataframe, columns_number_of_cases) #Xử lí bị thiếu dữ liệu
+    dataframe = remove_non_numeric(dataframe,columns_number_of_cases) #Loại bỏ các kí tự không phải số trong các cột số ca
+    dataframe = remove_numbers_and_special_characters(dataframe, ['Country/Region','WHO Region']) #Loại bỏ các kí tự không phải chữ cái
+    dataframe = replace_negative_with_zero(dataframe, columns_number_of_cases) #Thay các giá trị ở các cột số ca nếu là giá trị âm sẽ đổi thành 0 
+    dataframe = remove_duplicates(dataframe) #Xóa các hàng có giá trị trùng lặp dựa trên hàng Country\Region
+    dataframe = process_missing_values(dataframe, columns_number_of_cases) #Xử lí bị thiếu dữ liệu
+    dataframe = remove_invalid_row(dataframe) #Xử lí hàng có giá trị không hợp lí 
 
     #Lưu bản làm sạch lại
     dataframe.to_csv(file_path, index=False)
