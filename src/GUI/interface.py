@@ -22,11 +22,15 @@ def run_interface():
     label = tk.Label(nav_frame, text="Covid Dashboard", font=("Arial", 16, "bold"), bg="#2E7D32", fg="white")
     label.pack(pady=20)
 
+
+
+
+
     # ------------------------------------ View ------------------------------------
     def read_and_display_data():
         # # Làm sạch và chuẩn hóa
-        # Datacleaner.CleanUp()
-        # DataNormalizer.normalize()
+        Datacleaner.CleanUp()
+        DataNormalizer.normalize()
 
         df = Read.read()  # Đảm bảo rằng hàm này đã tồn tại và trả về một DataFrame
 
@@ -92,14 +96,23 @@ def run_interface():
             elif event.keysym == "Down" and idx < len(entries) - 1:
                 entries[idx + 1].focus_set()
 
+        # Gộp chú thích và đưa lên đầu trang
+        note_font = ("Arial", 8, "italic")  # Font nhạt và in nghiêng
+        combined_note = "Confirmed lớn hơn Deaths, Recovered, Active và New cases lớn hơn New deaths, New recovered"
+        
+        # Đặt chú thích lên đầu trang (row=0, columnspan=3)
+        note_label = tk.Label(data_frame, text=combined_note, font=note_font, fg="gray", wraplength=600)
+        note_label.grid(row=0, column=0, columnspan=3, pady=(5, 2), sticky='w')
+
+        # Các mục nhập dữ liệu bắt đầu từ hàng 1 để tránh bị che khuất bởi chú thích
         for idx, label_text in enumerate(labels):
             label = tk.Label(data_frame, text=label_text)
-            label.grid(row=idx, column=0, padx=(10, 2), pady=5, sticky='w')
+            label.grid(row=idx + 1, column=0, padx=(10, 2), pady=5, sticky='w')
 
             if label_text == 'WHO Region':
                 selected_region = tk.StringVar(value="")
                 combobox = ttk.Combobox(data_frame, textvariable=selected_region, values=who_region_options, state="readonly", font=("Arial", 10))
-                combobox.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
+                combobox.grid(row=idx + 1, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
                 inputs[label_text] = selected_region
                 entries.append(combobox)
 
@@ -108,7 +121,7 @@ def run_interface():
                 combobox.bind("<Down>", lambda event, idx=idx: on_up_down_key(event, idx))
             else:
                 entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
-                entry.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
+                entry.grid(row=idx + 1, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
                 inputs[label_text] = entry
                 entries.append(entry)
 
@@ -118,6 +131,7 @@ def run_interface():
 
         data_frame.grid_columnconfigure(1, weight=1)
 
+        # Lưu bản ghi
         def save_new_record():
             # Xác nhận lưu bản ghi với hộp thoại
             if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn ghi bản ghi này không?"):
@@ -135,7 +149,7 @@ def run_interface():
 
                     Create.create(country, confirmed, deaths, recovered, active, new_cases, new_deaths, new_recovered, confirmed_last_week, who_region)
 
-                    messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
+                    # messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
                     read_and_display_data()
 
                     for key, widget in inputs.items():
@@ -149,8 +163,9 @@ def run_interface():
                 except FileNotFoundError:
                     messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
 
+        # Đẩy nút Add xuống 1 hàng
         save_button = tk.Button(data_frame, text="Add", command=save_new_record, font=("Arial", 10, "bold"))
-        save_button.grid(row=len(labels), column=1, pady=20)
+        save_button.grid(row=len(labels) + 1, column=1, pady=20)  # Thêm hàng xuống dưới cùng của form nhập liệu
         save_button.bind("<Return>", lambda event: save_new_record())
 
 
