@@ -6,59 +6,63 @@ from Data_cleaning_normalization import Datacleaner, DataNormalizer
 def run_interface():
     # Tạo cửa sổ chính
     root = tk.Tk()
-    root.title("Covid")
-    root.geometry("700x500")
+    root.title("Covid Dashboard")
+    root.geometry("1200x700")
+    root.config(bg="#E8F5E9")
     root.iconbitmap("Data/src_img/OIP.ico")
     
-    label = tk.Label(root, text="Dataset", font=("Arial", 14))
-    label.pack(pady=10)
-    
-    button_frame = tk.Frame(root)
-    button_frame.pack(pady=10)
-    
-    data_frame = tk.Frame(root)
-    data_frame.pack(expand=True, fill="both", padx=10, pady=10)
+    # Khung cho thanh điều hướng
+    nav_frame = tk.Frame(root, bg="#2E7D32", width=200)
+    nav_frame.pack(side="left", fill="y")
 
+    # Khung cho dữ liệu
+    data_frame = tk.Frame(root, bg="white")
+    data_frame.pack(side="right", expand=True, fill="both", padx=10, pady=10)
 
+    label = tk.Label(nav_frame, text="Covid Dashboard", font=("Arial", 16, "bold"), bg="#2E7D32", fg="white")
+    label.pack(pady=20)
 
-
-
-    # ------------------------------------ View ---------------------------------------------
+    # ------------------------------------ View ------------------------------------
     def read_and_display_data():
-            # Làm sạch và chuẩn hóa 
-            Datacleaner.CleanUp()
-            DataNormalizer.normalize()
+        # # Làm sạch và chuẩn hóa
+        # Datacleaner.CleanUp()
+        # DataNormalizer.normalize()
 
-            df = Read.read()
-            
-            # Xóa bảng cũ nếu có
-            for widget in data_frame.winfo_children():
-                widget.destroy()
-            
-            # Tạo Treeview
-            tree = ttk.Treeview(data_frame, columns=list(df.columns), show="headings")
-            
-            # Thêm dữ liệu vào Treeview
-            for _, row in df.iterrows():
-                tree.insert("", "end", values=list(row))
+        df = Read.read()  # Đảm bảo rằng hàm này đã tồn tại và trả về một DataFrame
 
-            # Đặt tên cho cột
-            for col in df.columns:
-                tree.heading(col, text=col)
-                tree.column(col, width=100, anchor="center")
-            
-            # Tạo thanh cuộn
-            v_scrollbar = ttk.Scrollbar(data_frame, orient="vertical", command=tree.yview)
-            h_scrollbar = ttk.Scrollbar(data_frame, orient="horizontal", command=tree.xview)
-            tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-            tree.grid(row=0, column=0, sticky="nsew")
-            v_scrollbar.grid(row=0, column=1, sticky="ns")
-            h_scrollbar.grid(row=1, column=0, sticky="ew")
-            
-            # Điều chỉnh grid layout
-            data_frame.grid_rowconfigure(0, weight=1)
-            data_frame.grid_columnconfigure(0, weight=1)
-            
+        # Xóa bảng cũ nếu có
+        for widget in data_frame.winfo_children():
+            widget.destroy()
+
+        # Khung cho Treeview và thanh cuộn
+        tree_frame = tk.Frame(data_frame)
+        tree_frame.pack(expand=True, fill="both")
+
+        # Tạo Treeview
+        tree = ttk.Treeview(tree_frame, columns=list(df.columns), show="headings", style="Custom.Treeview")
+        tree.grid(row=0, column=0, sticky="nsew")
+
+        # Đặt tên và kích thước cho cột
+        for col in df.columns:
+            tree.heading(col, text=col, anchor="center")
+            tree.column(col, anchor="center", minwidth=120, width=150, stretch=True)
+
+        # Thêm dữ liệu vào Treeview
+        for _, row in df.iterrows():
+            tree.insert("", "end", values=list(row))
+
+        # Tạo thanh cuộn dọc và ngang
+        v_scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
+        h_scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+
+        # Đặt thanh cuộn dọc và ngang
+        v_scrollbar.grid(row=0, column=1, sticky="ns")
+        h_scrollbar.grid(row=1, column=0, sticky="ew")
+
+        # Cấu hình khung chứa để thay đổi kích thước đúng cách
+        tree_frame.grid_rowconfigure(0, weight=1)
+        tree_frame.grid_columnconfigure(0, weight=1)
     
 
 
@@ -76,60 +80,79 @@ def run_interface():
         df = Read.read()
         who_region_options = df['WHO Region'].dropna().unique().tolist()
 
+        def on_enter_key(event, idx):
+            if idx < len(entries) - 1:
+                entries[idx + 1].focus_set()
+            else:
+                save_new_record()
+
+        def on_up_down_key(event, idx):
+            if event.keysym == "Up" and idx > 0:
+                entries[idx - 1].focus_set()
+            elif event.keysym == "Down" and idx < len(entries) - 1:
+                entries[idx + 1].focus_set()
+
         for idx, label_text in enumerate(labels):
             label = tk.Label(data_frame, text=label_text)
             label.grid(row=idx, column=0, padx=(10, 2), pady=5, sticky='w')
 
             if label_text == 'WHO Region':
-                selected_region = tk.StringVar()
-                selected_region.set(who_region_options[0])  
-                dropdown = tk.OptionMenu(data_frame, selected_region, *who_region_options)
-                dropdown.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
+                selected_region = tk.StringVar(value="")
+                combobox = ttk.Combobox(data_frame, textvariable=selected_region, values=who_region_options, state="readonly", font=("Arial", 10))
+                combobox.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
                 inputs[label_text] = selected_region
+                entries.append(combobox)
+
+                combobox.bind("<Return>", lambda event, idx=idx: on_enter_key(event, idx))
+                combobox.bind("<Up>", lambda event, idx=idx: on_up_down_key(event, idx))
+                combobox.bind("<Down>", lambda event, idx=idx: on_up_down_key(event, idx))
             else:
                 entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
                 entry.grid(row=idx, column=1, padx=(2, 10), pady=5, sticky='ew', columnspan=2)
                 inputs[label_text] = entry
                 entries.append(entry)
 
-                entry.bind("<Return>", lambda event, idx=idx: entries[min(idx + 1, len(entries) - 1)].focus())
+                entry.bind("<Return>", lambda event, idx=idx: on_enter_key(event, idx))
+                entry.bind("<Up>", lambda event, idx=idx: on_up_down_key(event, idx))
+                entry.bind("<Down>", lambda event, idx=idx: on_up_down_key(event, idx))
 
         data_frame.grid_columnconfigure(1, weight=1)
 
-        # Hàm lưu dữ liệu mới vào CSV
         def save_new_record():
-            try:
-                country = inputs['Country/Region'].get()
-                confirmed = float(inputs['Confirmed'].get())
-                deaths = float(inputs['Deaths'].get())
-                recovered = float(inputs['Recovered'].get())
-                active = float(inputs['Active'].get())
-                new_cases = float(inputs['New cases'].get())
-                new_deaths = float(inputs['New deaths'].get())
-                new_recovered = float(inputs['New recovered'].get())
-                confirmed_last_week = float(inputs['Confirmed last week'].get())
-                who_region = inputs['WHO Region'].get()
+            # Xác nhận lưu bản ghi với hộp thoại
+            if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn ghi bản ghi này không?"):
+                try:
+                    country = inputs['Country/Region'].get()
+                    confirmed = float(inputs['Confirmed'].get())
+                    deaths = float(inputs['Deaths'].get())
+                    recovered = float(inputs['Recovered'].get())
+                    active = float(inputs['Active'].get())
+                    new_cases = float(inputs['New cases'].get())
+                    new_deaths = float(inputs['New deaths'].get())
+                    new_recovered = float(inputs['New recovered'].get())
+                    confirmed_last_week = float(inputs['Confirmed last week'].get())
+                    who_region = inputs['WHO Region'].get()
 
-                Create.create(country, confirmed, deaths, recovered, active, new_cases, new_deaths, new_recovered, confirmed_last_week, who_region)
+                    Create.create(country, confirmed, deaths, recovered, active, new_cases, new_deaths, new_recovered, confirmed_last_week, who_region)
 
-                messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
-                read_and_display_data()
+                    messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
+                    read_and_display_data()
 
-                # Xóa dữ liệu trong các ô nhập liệu sau khi lưu thành công
-                for key, widget in inputs.items():
-                    if isinstance(widget, tk.Entry):
-                        widget.delete(0, tk.END)
-                    elif isinstance(widget, tk.StringVar):
-                        widget.set(who_region_options[0]) 
+                    for key, widget in inputs.items():
+                        if isinstance(widget, tk.Entry):
+                            widget.delete(0, tk.END)
+                        elif isinstance(widget, tk.StringVar):
+                            widget.set("")
 
-            except ValueError as ve:
-                messagebox.showerror("Lỗi nhập liệu", f"Giá trị không hợp lệ: {ve}")
-            except FileNotFoundError:
-                messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
+                except ValueError as ve:
+                    messagebox.showerror("Lỗi nhập liệu", f"Giá trị không hợp lệ: {ve}")
+                except FileNotFoundError:
+                    messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
 
-        # Nút Lưu bản ghi
-        save_button = tk.Button(data_frame, text="Add", command=save_new_record)
+        save_button = tk.Button(data_frame, text="Add", command=save_new_record, font=("Arial", 10, "bold"))
         save_button.grid(row=len(labels), column=1, pady=20)
+        save_button.bind("<Return>", lambda event: save_new_record())
+
 
 
 
@@ -143,6 +166,7 @@ def run_interface():
 
         inputs = {}
 
+        # Nhãn và ô nhập liệu cho tên quốc gia cần xóa
         label = tk.Label(data_frame, text="Nhập tên quốc gia cần xóa:")
         label.grid(row=0, column=0, padx=(10, 2), pady=5, sticky='w') 
 
@@ -150,27 +174,30 @@ def run_interface():
         country_entry.grid(row=0, column=1, padx=(2, 10), pady=5, sticky='ew')  
         inputs['Country/Region'] = country_entry
 
+        # Ràng buộc sự kiện Enter để thực hiện việc xóa khi nhấn Enter
+        country_entry.bind("<Return>", lambda event: confirm_delete(country_entry.get()))
+
         # Nút Xóa bản ghi
-        delete_button = tk.Button(data_frame, text="Delete", command=lambda: delete_country(country_entry.get()))
+        delete_button = tk.Button(data_frame, text="Delete", command=lambda: confirm_delete(country_entry.get()))
         delete_button.grid(row=1, column=1, pady=20)
 
-    def delete_country(country_to_delete):
-        try:
-            temp_name_delete = country_to_delete
+    def confirm_delete(country_to_delete):
+        # Hộp thoại xác nhận
+        confirm = messagebox.askyesno("Xác nhận xóa", f"Bạn có chắc chắn muốn xóa quốc gia '{country_to_delete}'?")
+        if confirm:
+            try:
+                # Gọi hàm delete trong module Delete
+                df = Delete.delete(country_to_delete)
+                read_and_display_data()
 
-            # Gọi hàm delete trong module Delete
-            df = Delete.delete(temp_name_delete) 
-            read_and_display_data()
-
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Đã xảy ra lỗi: {e}")
+            except Exception as e:
+                messagebox.showerror("Lỗi", f"Đã xảy ra lỗi: {e}")
 
 
 
 
 
     # -------------------------------------- Update ----------------------------------
-    # Hàm tạo giao diện và cập nhật bản ghi
     def add_update_interface():
         # Xóa giao diện cũ nếu đã hiển thị trước đó
         for widget in data_frame.winfo_children():
@@ -186,6 +213,9 @@ def run_interface():
         country_entry.grid(row=0, column=1, padx=(2, 10), pady=5, sticky='ew')  
         inputs['Country/Region'] = country_entry
 
+        # Ràng buộc sự kiện Enter để thực hiện việc cập nhật khi nhấn Enter
+        country_entry.bind("<Return>", lambda event: update_country(country_entry.get()))
+
         # Nút Cập nhật bản ghi
         update_button = tk.Button(data_frame, text="Update", command=lambda: update_country(country_entry.get()))
         update_button.grid(row=1, column=1, pady=20)
@@ -196,7 +226,7 @@ def run_interface():
             temp_name_update = country_to_update
 
             # Gọi hàm update trong module Update
-            df = Update.update_record(temp_name_update) 
+            df = Update.update_record(temp_name_update)
 
             if df is not None:  # Nếu df không phải None
                 # Cập nhật giao diện hiển thị dữ liệu
@@ -241,7 +271,8 @@ def run_interface():
 
     # --------------------------------------- Quit ------------------------------------
     def quit_app():
-        root.destroy()
+        if messagebox.askyesno("Xác nhận thoát", "Bạn có chắc chắn muốn thoát không?"):
+            root.destroy()
 
 
 
@@ -249,25 +280,38 @@ def run_interface():
 
     # --------------------------------------Interface ---------------------------------
     # Tạo các nút với nhãn theo yêu cầu
-    buttons = ["View", "Create", "Update", "Delete", "Quit", "Chart"]
-    for i, button_text in enumerate(buttons):
-        button = tk.Button(button_frame, text=button_text, width=10)
-        button.pack(side=tk.LEFT, padx=5)
-        
-        # Gán chức năng cho từng nút
-        if button_text == "View":
-            button.config(command=read_and_display_data)  
-        elif button_text == "Create":
-            button.config(command=add_create_interface) 
-        elif button_text == "Delete":
-            button.config(command=add_delete_interface)
-        elif button_text == "Update":
-            button.config(command=add_update_interface)
-        elif button_text == "Chart":
-            button.config(command=add_chart_interface)
-        elif button_text == "Quit":
-            button.config(command=quit_app)
+    # Thêm các nút trong thanh điều hướng
+    buttons = {
+        "View": read_and_display_data,
+        "Create": add_create_interface,
+        "Update": add_update_interface,
+        "Delete": add_delete_interface,
+        "Chart": add_chart_interface,
+        "Quit": quit_app
+    }
 
+    for text, command in buttons.items():
+        button = tk.Button(
+            nav_frame,
+            text=text,
+            command=command,
+            font=("Arial", 12),
+            bg="#43A047",
+            fg="white",
+            activebackground="#388E3C",
+            activeforeground="white",
+            relief="flat",
+            bd=0,
+            pady=10
+        )
+        button.pack(fill="x", padx=10, pady=5)
+
+    # Tùy chỉnh giao diện Treeview
+    style = ttk.Style()
+    style.configure("Custom.Treeview.Heading", font=("Arial", 10, "bold"), foreground="#2E7D32")
+    style.configure("Custom.Treeview", rowheight=30, fieldbackground="#E8F5E9")
+    style.map("Custom.Treeview", background=[("selected", "#A5D6A7")], foreground=[("selected", "black")])
+
+    # Chạy hiển thị dữ liệu ban đầu
     read_and_display_data()
-    
-    root.mainloop()  
+    root.mainloop()
