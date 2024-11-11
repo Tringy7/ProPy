@@ -152,6 +152,14 @@ def run_interface():
                     # messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
                     read_and_display_data()
 
+                    df = Read.read()
+
+                    if country in df['Country/Region'].values:
+                        messagebox.showinfo(None,"Đã thêm thành công")
+                    else:
+                        messagebox.showerror('Lỗi', 'Giá trị nhập không hợp lệ. Không lưu được')
+
+
                     for key, widget in inputs.items():
                         if isinstance(widget, tk.Entry):
                             widget.delete(0, tk.END)
