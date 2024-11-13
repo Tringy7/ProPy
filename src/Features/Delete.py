@@ -5,7 +5,7 @@ def delete(temp_name_delete):
     try:
         df = Read.read() 
 
-        country_to_delete = temp_name_delete
+        country_to_delete = temp_name_delete.strip().title()
 
         if country_to_delete in df['Country/Region'].values:
             # Xóa bản ghi tương ứng

@@ -136,7 +136,7 @@ def run_interface():
             # Xác nhận lưu bản ghi với hộp thoại
             if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn ghi bản ghi này không?"):
                 try:
-                    country = inputs['Country/Region'].get()
+                    country = inputs['Country/Region'].get().strip().title()
                     confirmed = float(inputs['Confirmed'].get())
                     deaths = float(inputs['Deaths'].get())
                     recovered = float(inputs['Recovered'].get())
@@ -153,6 +153,7 @@ def run_interface():
                     read_and_display_data()
 
                     df = Read.read()
+
 
                     if country in df['Country/Region'].values:
                         messagebox.showinfo(None,"Đã thêm thành công")
