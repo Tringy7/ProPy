@@ -27,8 +27,9 @@ def run_interface():
 
 
     # ------------------------------------ View ------------------------------------
+    # Hàm đọc và hiển thị dữ liệu
     def read_and_display_data():
-        # # Làm sạch và chuẩn hóa
+        # Làm sạch và chuẩn hóa dữ liệu
         Datacleaner.CleanUp()
         DataNormalizer.normalize()
 
@@ -38,11 +39,12 @@ def run_interface():
         for widget in data_frame.winfo_children():
             widget.destroy()
 
-        # Khung cho Treeview và thanh cuộn
+        # Khung chứa Treeview và thanh cuộn
         tree_frame = tk.Frame(data_frame)
         tree_frame.pack(expand=True, fill="both")
 
         # Tạo Treeview
+        global tree
         tree = ttk.Treeview(tree_frame, columns=list(df.columns), show="headings", style="Custom.Treeview")
         tree.grid(row=0, column=0, sticky="nsew")
 
@@ -67,10 +69,192 @@ def run_interface():
         # Cấu hình khung chứa để thay đổi kích thước đúng cách
         tree_frame.grid_rowconfigure(0, weight=1)
         tree_frame.grid_columnconfigure(0, weight=1)
+
+
+
+
     
+    # ---------------------------------- Search -------------------------------------
+    def add_search_interface():
+    # Xóa giao diện cũ nếu đã hiển thị trước đó
+        for widget in data_frame.winfo_children():
+            widget.destroy()
+
+        # Khung tìm kiếm
+        search_label = tk.Label(data_frame, text="Tìm kiếm quốc gia:")
+        search_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
+
+        search_entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
+        search_entry.grid(row=0, column=1, padx=10, pady=5, sticky='ew')
+
+        # Khung hiển thị danh sách gợi ý
+        suggestion_listbox = tk.Listbox(data_frame, height=10, font=("Arial", 10))
+        suggestion_listbox.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky='ew')
+
+        # Tạo scrollbar cho Listbox
+        scrollbar = ttk.Scrollbar(data_frame, orient="vertical", command=suggestion_listbox.yview)
+        suggestion_listbox.configure(yscrollcommand=scrollbar.set)
+        scrollbar.grid(row=1, column=2, sticky="ns", pady=5)
+
+        data_frame.grid_columnconfigure(1, weight=1)
+
+        def filter_suggestions(event):
+            # Lấy danh sách quốc gia từ dữ liệu
+            df = Read.read()
+            country_list = df["Country/Region"].dropna().tolist()
+
+            # Lấy chuỗi nhập liệu
+            query = search_entry.get().strip().lower()
+
+            # Lọc gợi ý
+            filtered_countries = [country for country in country_list if query in country.lower()]
+
+            # Xóa danh sách cũ
+            suggestion_listbox.delete(0, tk.END)
+
+            # Cập nhật danh sách mới
+            for country in filtered_countries:
+                suggestion_listbox.insert(tk.END, country)
+
+        # Liên kết sự kiện nhập liệu
+        search_entry.bind("<KeyRelease>", filter_suggestions)
+
+        def display_country_data(selected_country):
+            # Lấy dữ liệu quốc gia từ `Read.read`
+            df = Read.read()
+
+            # Lọc dữ liệu theo quốc gia
+            filtered_data = df[df["Country/Region"] == selected_country]
+
+            # Xóa bảng cũ nếu có
+            for widget in data_frame.winfo_children():
+                widget.destroy()
+
+            # Hiển thị dữ liệu quốc gia
+            tree_frame = tk.Frame(data_frame)
+            tree_frame.pack(expand=True, fill="both")
+
+            # Tạo Treeview
+            tree = ttk.Treeview(tree_frame, columns=list(filtered_data.columns), show="headings", style="Custom.Treeview")
+            tree.grid(row=0, column=0, sticky="nsew")
+
+            for col in filtered_data.columns:
+                tree.heading(col, text=col, anchor="center")
+                tree.column(col, anchor="center", minwidth=120, width=150, stretch=True)
+
+            for _, row in filtered_data.iterrows():
+                tree.insert("", "end", values=list(row))
+
+            # Tạo thanh cuộn dọc và ngang
+            v_scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
+            h_scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal", command=tree.xview)
+            tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+
+            v_scrollbar.grid(row=0, column=1, sticky="ns")
+            h_scrollbar.grid(row=1, column=0, sticky="ew")
+
+            tree_frame.grid_rowconfigure(0, weight=1)
+            tree_frame.grid_columnconfigure(0, weight=1)
+
+        def select_suggestion(event=None):
+            try:
+                selected_country = suggestion_listbox.get(suggestion_listbox.curselection())
+                display_country_data(selected_country)
+            except tk.TclError:
+                messagebox.showinfo("Thông báo", "Chưa chọn quốc gia nào!")
+
+        def navigate_suggestions(event):
+            current_selection = suggestion_listbox.curselection()
+            suggestion_listbox.focus_set()  # Đảm bảo Listbox nhận focus
+
+            if event.keysym == "Down":
+                if not current_selection:
+                    suggestion_listbox.selection_set(0)
+                    suggestion_listbox.activate(0)
+                else:
+                    next_index = (current_selection[0] + 1) % suggestion_listbox.size()
+                    suggestion_listbox.selection_clear(0, tk.END)
+                    suggestion_listbox.selection_set(next_index)
+                    suggestion_listbox.activate(next_index)
+                return "break"  # Ngăn chặn hành vi mặc định
+
+            elif event.keysym == "Up":
+                if not current_selection:
+                    suggestion_listbox.selection_set(suggestion_listbox.size() - 1)
+                    suggestion_listbox.activate(suggestion_listbox.size() - 1)
+                else:
+                    prev_index = (current_selection[0] - 1) % suggestion_listbox.size()
+                    suggestion_listbox.selection_clear(0, tk.END)
+                    suggestion_listbox.selection_set(prev_index)
+                    suggestion_listbox.activate(prev_index)
+                return "break"  # Ngăn chặn hành vi mặc định
+
+
+        # Liên kết sự kiện cho Entry
+        search_entry.bind("<Return>", lambda event: suggestion_listbox.focus_set())  # Chuyển focus đến Listbox khi nhấn Enter
+        search_entry.bind("<Down>", navigate_suggestions)  # Điều hướng xuống Listbox
+        search_entry.bind("<Up>", navigate_suggestions)  # Điều hướng lên Listbox
+
+        # Liên kết sự kiện cho Listbox
+        suggestion_listbox.bind("<Return>", lambda event: select_suggestion())
+        suggestion_listbox.bind("<Up>", navigate_suggestions)
+        suggestion_listbox.bind("<Down>", navigate_suggestions)
 
 
 
+
+
+    # ---------------------------------- Sort ----------------------------------------
+    def sort():
+        # Đọc dữ liệu từ file hoặc nguồn
+        df = Read.read()
+
+        # Cột để sắp xếp
+        column_names = [
+            "Country/Region", "Confirmed", "Deaths", "Recovered", "Active", "New cases", 
+            "New deaths", "New recovered", "Deaths / 100 Cases", "Recovered / 100 Cases", 
+            "Deaths / 100 Recovered", "Confirmed last week", "1 week change", 
+            "1 week % increase", "WHO Region"
+        ]
+        
+        # Hàm callback khi chọn cột để sắp xếp
+        def on_column_select():
+            column_name = column_combo.get()
+            if column_name in column_names:
+                # Sắp xếp dữ liệu theo cột được chọn
+                sorted_df = df.sort_values(by=column_name, ascending=True)
+                # Hiển thị dữ liệu đã sắp xếp
+                display_sorted_data(sorted_df)
+                sort_window.destroy()
+
+        # Tạo cửa sổ con để chọn cột
+        sort_window = tk.Toplevel(root)
+        sort_window.title("Chọn cột để sắp xếp")
+
+        # Label hướng dẫn
+        label = tk.Label(sort_window, text="Chọn cột để sắp xếp:")
+        label.pack(padx=10, pady=10)
+
+        # ComboBox để chọn cột
+        column_combo = ttk.Combobox(sort_window, values=column_names, width=30)
+        column_combo.pack(padx=10, pady=10)
+
+        # Nút xác nhận để sắp xếp
+        sort_button = tk.Button(sort_window, text="Sắp xếp", command=on_column_select)
+        sort_button.pack(padx=10, pady=10)
+
+        # Hàm để hiển thị dữ liệu đã sắp xếp trong Treeview
+        def display_sorted_data(sorted_df):
+            for row in tree.get_children():
+                tree.delete(row)  # Xóa tất cả các dòng cũ trong Treeview
+
+            # Thêm dữ liệu đã sắp xếp vào Treeview
+            for _, row in sorted_df.iterrows():
+                tree.insert("", "end", values=list(row))
+
+
+
+                
     # ------------------------------------ Create ------------------------------------
     def add_create_interface():
         # Xóa giao diện cũ nếu đã hiển thị trước đó
@@ -303,14 +487,15 @@ def run_interface():
 
 
     # --------------------------------------Interface ---------------------------------
-    # Tạo các nút với nhãn theo yêu cầu
-    # Thêm các nút trong thanh điều hướng
+    # Các nút trong thanh điều hướng
     buttons = {
         "View": read_and_display_data,
+        "Search": add_search_interface,
+        "Sort": sort, 
         "Create": add_create_interface,
         "Update": add_update_interface,
         "Delete": add_delete_interface,
-        "Chart": add_chart_interface,
+        "Chart": add_chart_interface, 
         "Quit": quit_app
     }
 
@@ -329,6 +514,7 @@ def run_interface():
             pady=10
         )
         button.pack(fill="x", padx=10, pady=5)
+
 
     # Tùy chỉnh giao diện Treeview
     style = ttk.Style()
