@@ -319,6 +319,8 @@ def run_interface():
 
                     read_and_display_data()
 
+                    df = Read.read()
+
                     if country in df['Country/Region'].values:
                         messagebox.showinfo(None,"Đã thêm thành công")
                     else:
@@ -407,14 +409,12 @@ def run_interface():
 
     def update_country(country_to_update):
         try:
-            # Biến tạm để truyền vào hàm update
+            # Truyền biến tạm vào hàm update 
             temp_name_update = country_to_update
 
-            # Gọi hàm update trong module Update
             df = Update.update_record(temp_name_update)
 
-            if df is not None:  # Nếu df không phải None
-                # Cập nhật giao diện hiển thị dữ liệu
+            if df is not None:  
                 read_and_display_data()
 
         except Exception as e:

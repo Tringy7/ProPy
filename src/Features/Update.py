@@ -3,11 +3,11 @@ from tkinter import messagebox, ttk
 from Features import Read
 
 def update_record(country_name):
-    # Tạo cửa sổ cập nhật dữ liệu với kích thước lớn và phong cách tương tự giao diện chính
+    # Tạo giao diện mới để nhập update
     window = tk.Tk()
     window.title("Cập nhật dữ liệu quốc gia")
     window.geometry("600x700")
-    window.config(bg="#E8F5E9")  # Màu nền giống với cửa sổ chính
+    window.config(bg="#E8F5E9")  
 
     try:
         df = Read.read()
@@ -16,7 +16,7 @@ def update_record(country_name):
         window.destroy()
         return
 
-    # Kiểm tra xem quốc gia có tồn tại trong dữ liệu hay không
+    # Kiểm tra xem quốc gia có tồn tại hay không
     if country_name not in df['Country/Region'].values:
         messagebox.showerror("Lỗi", f"Quốc gia '{country_name}' không tồn tại trong dữ liệu.")
         window.destroy()
@@ -30,20 +30,18 @@ def update_record(country_name):
               'Confirmed last week', 'WHO Region']
     entries = {}
 
-    # Tiêu đề
     tk.Label(window, text=f"Cập nhật dữ liệu cho '{country_name}'", font=("Arial", 16, "bold"), bg="#E8F5E9").pack(pady=10)
 
-    # Tạo các ô nhập liệu cho từng trường thông tin
+    # Tạo ô nhập liệu
     for idx, field in enumerate(fields):
         tk.Label(window, text=f"{field}:", font=("Arial", 10), bg="#E8F5E9").pack(pady=5)
 
         if field == 'WHO Region':
-            region_options = [region.replace("'", "") for region in df['WHO Region'].unique()]  # Loại bỏ dấu nháy trong WHO Region
+            region_options = [region.replace("'", "") for region in df['WHO Region'].unique()]  
             combobox = ttk.Combobox(window, values=region_options, font=("Arial", 10))
             combobox.pack(fill="x", padx=10)
             entries[field] = combobox
 
-            # Ràng buộc phím Enter, Up, và Down để chuyển đến ô tiếp theo hoặc lưu thay đổi
             combobox.bind("<Return>", lambda event, idx=idx: focus_next(idx))
             combobox.bind("<Down>", lambda event, idx=idx: focus_next(idx))
             combobox.bind("<Up>", lambda event, idx=idx: focus_previous(idx))
@@ -52,20 +50,17 @@ def update_record(country_name):
             entry.pack(fill="x", padx=10)
             entries[field] = entry
 
-            # Ràng buộc phím Enter, Up, và Down để chuyển đến ô tiếp theo hoặc lưu thay đổi
             entry.bind("<Return>", lambda event, idx=idx: focus_next(idx))
             entry.bind("<Down>", lambda event, idx=idx: focus_next(idx))
             entry.bind("<Up>", lambda event, idx=idx: focus_previous(idx))
 
-    # Hàm chuyển đến ô nhập liệu tiếp theo
     def focus_next(idx):
         if idx + 1 < len(fields):
             next_widget = entries[fields[idx + 1]]
             next_widget.focus_set()
         else:
-            save_changes()  # Thực hiện cập nhật khi nhấn Enter ở ô cuối cùng
+            save_changes() 
 
-    # Hàm chuyển đến ô nhập liệu trước đó
     def focus_previous(idx):
         if idx > 0:
             previous_widget = entries[fields[idx - 1]]
