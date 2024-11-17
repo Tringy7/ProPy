@@ -27,13 +27,12 @@ def run_interface():
 
 
     # ------------------------------------ View ------------------------------------
-    # Hàm đọc và hiển thị dữ liệu
     def read_and_display_data():
         # Làm sạch và chuẩn hóa dữ liệu
         Datacleaner.CleanUp()
         DataNormalizer.normalize()
 
-        df = Read.read()  # Đảm bảo rằng hàm này đã tồn tại và trả về một DataFrame
+        df = Read.read() 
 
         # Xóa bảng cũ nếu có
         for widget in data_frame.winfo_children():
@@ -42,8 +41,6 @@ def run_interface():
         # Khung chứa Treeview và thanh cuộn
         tree_frame = tk.Frame(data_frame)
         tree_frame.pack(expand=True, fill="both")
-
-        # Tạo Treeview
         global tree
         tree = ttk.Treeview(tree_frame, columns=list(df.columns), show="headings", style="Custom.Treeview")
         tree.grid(row=0, column=0, sticky="nsew")
@@ -76,18 +73,17 @@ def run_interface():
     
     # ---------------------------------- Search -------------------------------------
     def add_search_interface():
-    # Xóa giao diện cũ nếu đã hiển thị trước đó
+    # Xóa giao diện cũ 
         for widget in data_frame.winfo_children():
             widget.destroy()
 
         # Khung tìm kiếm
         search_label = tk.Label(data_frame, text="Tìm kiếm quốc gia:")
         search_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
-
         search_entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
         search_entry.grid(row=0, column=1, padx=10, pady=5, sticky='ew')
 
-        # Khung hiển thị danh sách gợi ý
+        # Hiển thị danh sách gợi ý
         suggestion_listbox = tk.Listbox(data_frame, height=10, font=("Arial", 10))
         suggestion_listbox.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky='ew')
 
@@ -99,7 +95,6 @@ def run_interface():
         data_frame.grid_columnconfigure(1, weight=1)
 
         def filter_suggestions(event):
-            # Lấy danh sách quốc gia từ dữ liệu
             df = Read.read()
             country_list = df["Country/Region"].dropna().tolist()
 
@@ -120,21 +115,17 @@ def run_interface():
         search_entry.bind("<KeyRelease>", filter_suggestions)
 
         def display_country_data(selected_country):
-            # Lấy dữ liệu quốc gia từ `Read.read`
+            # Tạo một giao diện mới thể hiện thông tin search
             df = Read.read()
 
             # Lọc dữ liệu theo quốc gia
             filtered_data = df[df["Country/Region"] == selected_country]
 
-            # Xóa bảng cũ nếu có
             for widget in data_frame.winfo_children():
                 widget.destroy()
 
-            # Hiển thị dữ liệu quốc gia
             tree_frame = tk.Frame(data_frame)
             tree_frame.pack(expand=True, fill="both")
-
-            # Tạo Treeview
             tree = ttk.Treeview(tree_frame, columns=list(filtered_data.columns), show="headings", style="Custom.Treeview")
             tree.grid(row=0, column=0, sticky="nsew")
 
@@ -145,7 +136,6 @@ def run_interface():
             for _, row in filtered_data.iterrows():
                 tree.insert("", "end", values=list(row))
 
-            # Tạo thanh cuộn dọc và ngang
             v_scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
             h_scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal", command=tree.xview)
             tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
@@ -156,6 +146,7 @@ def run_interface():
             tree_frame.grid_rowconfigure(0, weight=1)
             tree_frame.grid_columnconfigure(0, weight=1)
 
+        # Chọn 
         def select_suggestion(event=None):
             try:
                 selected_country = suggestion_listbox.get(suggestion_listbox.curselection())
@@ -163,9 +154,10 @@ def run_interface():
             except tk.TclError:
                 messagebox.showinfo("Thông báo", "Chưa chọn quốc gia nào!")
 
+        # Tạo điều hướng cho giao diện 
         def navigate_suggestions(event):
             current_selection = suggestion_listbox.curselection()
-            suggestion_listbox.focus_set()  # Đảm bảo Listbox nhận focus
+            suggestion_listbox.focus_set() 
 
             if event.keysym == "Down":
                 if not current_selection:
@@ -176,7 +168,7 @@ def run_interface():
                     suggestion_listbox.selection_clear(0, tk.END)
                     suggestion_listbox.selection_set(next_index)
                     suggestion_listbox.activate(next_index)
-                return "break"  # Ngăn chặn hành vi mặc định
+                return "break"  
 
             elif event.keysym == "Up":
                 if not current_selection:
@@ -191,9 +183,9 @@ def run_interface():
 
 
         # Liên kết sự kiện cho Entry
-        search_entry.bind("<Return>", lambda event: suggestion_listbox.focus_set())  # Chuyển focus đến Listbox khi nhấn Enter
-        search_entry.bind("<Down>", navigate_suggestions)  # Điều hướng xuống Listbox
-        search_entry.bind("<Up>", navigate_suggestions)  # Điều hướng lên Listbox
+        search_entry.bind("<Return>", lambda event: suggestion_listbox.focus_set())  
+        search_entry.bind("<Down>", navigate_suggestions) 
+        search_entry.bind("<Up>", navigate_suggestions)  
 
         # Liên kết sự kiện cho Listbox
         suggestion_listbox.bind("<Return>", lambda event: select_suggestion())
@@ -205,11 +197,11 @@ def run_interface():
 
 
     # ---------------------------------- Sort ----------------------------------------
+    # Kết hợp với hàm View để in ra giao diện danh sách sort 
     def sort():
-        # Đọc dữ liệu từ file hoặc nguồn
         df = Read.read()
 
-        # Cột để sắp xếp
+        # Các biến cần sắp xếp
         column_names = [
             "Country/Region", "Confirmed", "Deaths", "Recovered", "Active", "New cases", 
             "New deaths", "New recovered", "Deaths / 100 Cases", "Recovered / 100 Cases", 
@@ -221,9 +213,7 @@ def run_interface():
         def on_column_select():
             column_name = column_combo.get()
             if column_name in column_names:
-                # Sắp xếp dữ liệu theo cột được chọn
                 sorted_df = df.sort_values(by=column_name, ascending=True)
-                # Hiển thị dữ liệu đã sắp xếp
                 display_sorted_data(sorted_df)
                 sort_window.destroy()
 
@@ -231,7 +221,7 @@ def run_interface():
         sort_window = tk.Toplevel(root)
         sort_window.title("Chọn cột để sắp xếp")
 
-        # Label hướng dẫn
+        # Label
         label = tk.Label(sort_window, text="Chọn cột để sắp xếp:")
         label.pack(padx=10, pady=10)
 
@@ -239,16 +229,13 @@ def run_interface():
         column_combo = ttk.Combobox(sort_window, values=column_names, width=30)
         column_combo.pack(padx=10, pady=10)
 
-        # Nút xác nhận để sắp xếp
         sort_button = tk.Button(sort_window, text="Sắp xếp", command=on_column_select)
         sort_button.pack(padx=10, pady=10)
 
         # Hàm để hiển thị dữ liệu đã sắp xếp trong Treeview
         def display_sorted_data(sorted_df):
             for row in tree.get_children():
-                tree.delete(row)  # Xóa tất cả các dòng cũ trong Treeview
-
-            # Thêm dữ liệu đã sắp xếp vào Treeview
+                tree.delete(row) 
             for _, row in sorted_df.iterrows():
                 tree.insert("", "end", values=list(row))
 
@@ -257,7 +244,7 @@ def run_interface():
                 
     # ------------------------------------ Create ------------------------------------
     def add_create_interface():
-        # Xóa giao diện cũ nếu đã hiển thị trước đó
+        # Xóa giao diện cũ 
         for widget in data_frame.winfo_children():
             widget.destroy()
 
@@ -280,15 +267,13 @@ def run_interface():
             elif event.keysym == "Down" and idx < len(entries) - 1:
                 entries[idx + 1].focus_set()
 
-        # Gộp chú thích và đưa lên đầu trang
-        note_font = ("Arial", 8, "italic")  # Font nhạt và in nghiêng
+        # Tạo chú thích 
+        note_font = ("Arial", 8, "italic")  
         combined_note = "Confirmed lớn hơn Deaths, Recovered, Active và New cases lớn hơn New deaths, New recovered"
-        
-        # Đặt chú thích lên đầu trang (row=0, columnspan=3)
         note_label = tk.Label(data_frame, text=combined_note, font=note_font, fg="gray", wraplength=600)
         note_label.grid(row=0, column=0, columnspan=3, pady=(5, 2), sticky='w')
 
-        # Các mục nhập dữ liệu bắt đầu từ hàng 1 để tránh bị che khuất bởi chú thích
+        # Hiển thị các mục nhập dữ liệu
         for idx, label_text in enumerate(labels):
             label = tk.Label(data_frame, text=label_text)
             label.grid(row=idx + 1, column=0, padx=(10, 2), pady=5, sticky='w')
@@ -315,7 +300,6 @@ def run_interface():
 
         data_frame.grid_columnconfigure(1, weight=1)
 
-        # Lưu bản ghi
         def save_new_record():
             # Xác nhận lưu bản ghi với hộp thoại
             if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn ghi bản ghi này không?"):
@@ -333,11 +317,7 @@ def run_interface():
 
                     Create.create(country, confirmed, deaths, recovered, active, new_cases, new_deaths, new_recovered, confirmed_last_week, who_region)
 
-                    # messagebox.showinfo("Thành công", "Bản ghi đã được thêm vào CSV thành công!")
                     read_and_display_data()
-
-                    df = Read.read()
-
 
                     if country in df['Country/Region'].values:
                         messagebox.showinfo(None,"Đã thêm thành công")
@@ -345,7 +325,7 @@ def run_interface():
                         messagebox.showerror('Lỗi', 'Giá trị nhập không hợp lệ. Không lưu được')
 
 
-                    for key, widget in inputs.items():
+                    for widget in inputs.items():
                         if isinstance(widget, tk.Entry):
                             widget.delete(0, tk.END)
                         elif isinstance(widget, tk.StringVar):
@@ -356,9 +336,9 @@ def run_interface():
                 except FileNotFoundError:
                     messagebox.showerror("Lỗi", "Không tìm thấy file CSV.")
 
-        # Đẩy nút Add xuống 1 hàng
+        # Tạo nút Add
         save_button = tk.Button(data_frame, text="Add", command=save_new_record, font=("Arial", 10, "bold"))
-        save_button.grid(row=len(labels) + 1, column=1, pady=20)  # Thêm hàng xuống dưới cùng của form nhập liệu
+        save_button.grid(row=len(labels) + 1, column=1, pady=20)  
         save_button.bind("<Return>", lambda event: save_new_record())
 
 
@@ -368,33 +348,30 @@ def run_interface():
 
     # ------------------------------------ Delete ------------------------------------
     def add_delete_interface():
-        # Xóa giao diện cũ nếu đã hiển thị trước đó
+        # Xóa giao diện cũ 
         for widget in data_frame.winfo_children():
             widget.destroy()
 
         inputs = {}
 
-        # Nhãn và ô nhập liệu cho tên quốc gia cần xóa
+        # Tạo ô nhập liệu
         label = tk.Label(data_frame, text="Nhập tên quốc gia cần xóa:")
         label.grid(row=0, column=0, padx=(10, 2), pady=5, sticky='w') 
-
         country_entry = tk.Entry(data_frame, font=("Arial", 10, "normal"))
         country_entry.grid(row=0, column=1, padx=(2, 10), pady=5, sticky='ew')  
         inputs['Country/Region'] = country_entry
 
-        # Ràng buộc sự kiện Enter để thực hiện việc xóa khi nhấn Enter
         country_entry.bind("<Return>", lambda event: confirm_delete(country_entry.get()))
 
-        # Nút Xóa bản ghi
+        # Nút Delete
         delete_button = tk.Button(data_frame, text="Delete", command=lambda: confirm_delete(country_entry.get()))
         delete_button.grid(row=1, column=1, pady=20)
 
+    # Hộp thoại xác nhận
     def confirm_delete(country_to_delete):
-        # Hộp thoại xác nhận
         confirm = messagebox.askyesno("Xác nhận xóa", f"Bạn có chắc chắn muốn xóa quốc gia '{country_to_delete}'?")
         if confirm:
             try:
-                # Gọi hàm delete trong module Delete
                 df = Delete.delete(country_to_delete)
                 read_and_display_data()
 
@@ -463,13 +440,10 @@ def run_interface():
         # Tạo các nút chức năng
         piechart_button = Button(button_frame, text='Pie Chart', command=lambda: Chart.country_selection(), relief=tk.RAISED)
         piechart_button.pack(side='left', padx=10)
-
         confirmed_button = Button(button_frame, text='Total Confirmed', command=lambda: Chart.show_plot("Confirmed"), relief=tk.RAISED)
         confirmed_button.pack(side='left', padx=10)
-
         deaths_button = Button(button_frame, text='Total Deaths', command=lambda: Chart.show_plot("Deaths"), relief=tk.RAISED)
         deaths_button.pack(side='left', padx=5)
-
         recovered_button = Button(button_frame, text='Total Recovered', command=lambda: Chart.show_plot("Recovered"), relief=tk.RAISED)
         recovered_button.pack(side='left', padx=5)
 
@@ -516,12 +490,12 @@ def run_interface():
         button.pack(fill="x", padx=10, pady=5)
 
 
-    # Tùy chỉnh giao diện Treeview
+    # Tùy chỉnh giao diện 
     style = ttk.Style()
     style.configure("Custom.Treeview.Heading", font=("Arial", 10, "bold"), foreground="#2E7D32")
     style.configure("Custom.Treeview", rowheight=30, fieldbackground="#E8F5E9")
     style.map("Custom.Treeview", background=[("selected", "#A5D6A7")], foreground=[("selected", "black")])
 
-    # Chạy hiển thị dữ liệu ban đầu
+    # Chạy 
     read_and_display_data()
     root.mainloop()
