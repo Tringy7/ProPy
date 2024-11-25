@@ -40,19 +40,22 @@ def plot_country_pie_chart(country):
     # Lấy dữ liệu 'Country/Region'
     country_data = data[data['Country/Region'] == country].iloc[0]
     
-    confirmed = country_data['Confirmed']
     deaths = country_data['Deaths']
     recovered = country_data['Recovered']
-    active_cases = confirmed - deaths - recovered
-    remaining = confirmed - (deaths + recovered + active_cases)
+    active_cases = country_data['Active']
 
-    labels = ['Deaths', 'Recovered', 'Active Cases', 'Remaining']
-    sizes = [deaths, recovered, active_cases, remaining]
-    colors = ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99']
+    labels = ['Deaths', 'Recovered', 'Active Cases']
+    sizes = [deaths, recovered, active_cases]
+    colors = ['#ff9999', '#66b3ff', '#99ff99']
 
     fig, ax = plt.subplots()
-    ax.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
-    ax.axis('equal')  
+    wedges, texts, autotexts = ax.pie(
+        sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90
+    )
+    ax.axis('equal') 
+
+    ax.legend(wedges, labels, title="Categories", loc="upper right", bbox_to_anchor=(1.2, 1))
+
     plt.title(f"COVID-19 Cases in {country}", fontsize=14)
 
     return fig
