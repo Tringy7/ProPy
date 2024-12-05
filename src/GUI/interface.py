@@ -410,7 +410,7 @@ def run_interface():
     def update_country(country_to_update):
         try:
             # Truyền biến tạm vào hàm update 
-            temp_name_update = country_to_update
+            temp_name_update = country_to_update.title()
 
             df = Update.update_record(temp_name_update)
 

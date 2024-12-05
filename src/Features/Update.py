@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from Features import Read
+from Data_cleaning_normalization import Datacleaner, DataNormalizer
 
 def update_record(country_name):
     # Tạo giao diện mới để nhập update
@@ -93,10 +94,23 @@ def update_record(country_name):
             df.at[index, '1 week change'] = round(confirmed - confirmed_last_week, 2)
             df.at[index, '1 week % increase'] = round(((confirmed - confirmed_last_week) / confirmed_last_week) * 100, 2)
 
+        
         # Lưu
         df.to_csv("Data/corona-virus-report/country_wise_latest.csv", index=False)
-        messagebox.showinfo("Thành công", f"Dữ liệu của quốc gia '{country_name}' đã được cập nhật thành công!")
-        window.destroy()
+        window.after(100, lambda: Datacleaner.CleanUp())  # Thực thi sau 100ms
+        window.after(200, lambda: DataNormalizer.normalize())  # Thực thi sau 200ms
+
+        def read_and_update_df():
+            global df  # Đảm bảo cập nhật biến df toàn cục
+            df = Read.read()  # Đọc lại dữ liệu từ CSV sau khi làm sạch
+            if country_name not in df['Country/Region'].values:
+                messagebox.showerror("Lỗi", f"Dữ liệu cập nhật của quốc gia {country_name} không hợp lệ, dữ liệu đã bị xóa")
+            else:
+                messagebox.showinfo("Thành công", f"Cập nhật dữ liệu cho quốc gia '{country_name}' thành công!")
+            window.destroy()  # Đóng cửa sổ sau khi cập nhật
+
+        # Sau khi dữ liệu đã được đọc lại, kiểm tra lại
+        window.after(300, read_and_update_df)  # Đọc lại và cập nhật dữ liệu sau 300ms
 
     # Nút cập nhật
     update_button = tk.Button(window, text="Cập nhật", command=save_changes, font=("Arial", 12, "bold"), bg="#2E7D32", fg="white")
